@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Jeu de la vie</h1>
+  <form id="init-form" method="post",action= "init_game_of_life">
+    <label for="dim">Dimension: :</label>
+    <input type="number" id="dim" name="dim" value="10">
+    <br>
+    <button type="button" id="init-random">Configuration aléatoire</button>
+    <button type="button" id="init-custom">Configuration personnalisée</button>
+    <button type="submit">Valider</button>
+  </form>
+
+  <div id="grid-container">
+    <div id="grid"></div>
+    
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    // Récupérer les paramètres de l'utilisateur
+    var rows = {{ rows }};
+    var cols = {{ cols }};
+    var generations = {{ generations }};
+    var grid = {{ grid|safe }};
+    // Afficher la grille initiale
+    showGrid(grid);
+
+    // Mettre à jour la grille avec AJAX
+    setInterval(function() {
+  $.ajax({
+    url: "{% url 'update_game_of_life' %}",
+    type: "POST",
+    data: JSON.stringify({'grid': grid, 'rows': rows, 'cols': cols}),
+    contentType: "application/json",
+    success: function(data) {
+      console.log('blabla');
+      console.log('data :',data);
+      grid = data.grid;
+      showGrid(grid);
+    }
+  });
+}, 1000);
+
+// Fonction pour afficher la grille dans le div #grid
+function showGrid(grid) {
+  var html = '';
+  for (var i = 0; i < rows; i++) {
+    for (var j = 0; j < cols; j++) {
+      if (grid[i][j] == 1) {
+        html += '<span class="cell alive"></span>';
+      } else {
+        html += '<span class="cell"></span>';
+      }
+    }
+    html += '<br>';
+  }
+  $('#grid').html(html);
+}
+  </script>
+
+<style>
+  #grid-container {
+    display: flex;
+    justify-content: center;
+  }
+  .cell {
+    display: inline-block;
+    border: 1px solid black;
+    width: calc(500px / {{ cols }});
+    height: calc(500px / {{ rows }});
+  }
+  .alive {
+    background-color: black;
+  }
+</style>
+{% endblock %}
